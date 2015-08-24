@@ -32,20 +32,27 @@ MiloGridProto._calcGridColumns = function() {
 MiloGridProto.buildGrid = function() {
     var idx = 0;
     var length = this.children.length;
+    var child;
+    var containerHeight = 0;
+    var topPosition;
     // clean array before each build
     this.topOffset = [];
 
     this._calcGridColumns();
 
     for (idx; idx < length; idx++) {
-        this.children[idx].style.cssText =
+        child = this.children[idx];
+        topPosition = this._calcTopPosition(idx);
+        child.style.cssText =
             'margin:' + this.gridItemMargin / 2 + 'px;' +
-            'top:' + this._calcTopPosition(idx) + 'px;' +
+            'top:' + topPosition + 'px;' +
             'left:' + (this.gridItemWidth + this.gridItemMargin) * Math.round(idx % this.gridColumns) + 'px;' +
             'width:' + this.gridItemWidth + 'px;';
 
-        this.topOffset.push(this.children[idx].offsetHeight + this.gridItemMargin + this.children[idx].offsetTop);
+        this.topOffset.push(child.offsetHeight + this.gridItemMargin + child.offsetTop);
+        containerHeight = Math.max(containerHeight, topPosition + child.offsetHeight);
     }
+    this.containerEl.style.height = containerHeight+ 'px';
 };
 
 MiloGridProto._destroyGrid = function() {
