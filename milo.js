@@ -31,28 +31,53 @@ MiloGridProto._calcGridColumns = function() {
 
 MiloGridProto.buildGrid = function() {
     var idx = 0;
+    var imgIdx = 0;
     var length = this.children.length;
     var child;
     var containerHeight = 0;
     var topPosition;
+    var images = Array.prototype.slice.call(this.containerEl.querySelectorAll('img'));
     // clean array before each build
     this.topOffset = [];
 
     this._calcGridColumns();
 
-    for (idx; idx < length; idx++) {
-        child = this.children[idx];
-        topPosition = this._calcTopPosition(idx);
-        child.style.cssText =
-            'margin:' + this.gridItemMargin / 2 + 'px;' +
-            'top:' + topPosition + 'px;' +
-            'left:' + (this.gridItemWidth + this.gridItemMargin) * Math.round(idx % this.gridColumns) + 'px;' +
-            'width:' + this.gridItemWidth + 'px;';
-
-        this.topOffset.push(child.offsetHeight + this.gridItemMargin + child.offsetTop);
-        containerHeight = Math.max(containerHeight, topPosition + child.offsetHeight);
+    var _buildGridIfImagesLoaded = buildGridIfImagesLoaded.bind(this);
+    for (imgIdx; imgIdx < images.length; imgIdx++) {
+        images[imgIdx].addEventListener('load', _buildGridIfImagesLoaded)
     }
-    this.containerEl.style.height = containerHeight+ 'px';
+
+    buildGridIfImagesLoaded.call(this);
+
+    function allImagesLoaded() {
+        return images.every(function (image) {
+            return image.complete;
+        });
+    }
+
+    function buildGridIfImagesLoaded() {
+        var imgIdx = 0;
+        if (!allImagesLoaded()) {
+            return;
+        }
+        for (imgIdx; imgIdx < images.length; imgIdx++) {
+            images[imgIdx].removeEventListener('load', _buildGridIfImagesLoaded);
+        }
+        for (idx; idx < length; idx++) {
+            child = this.children[idx];
+            topPosition = this._calcTopPosition(idx);
+            child.style.cssText =
+                'margin:' + this.gridItemMargin / 2 + 'px;' +
+                'top:' + topPosition + 'px;' +
+                'left:' + (this.gridItemWidth + this.gridItemMargin) * Math.round(idx % this.gridColumns) + 'px;' +
+                'width:' + this.gridItemWidth + 'px;';
+
+            this.topOffset.push(child.offsetHeight + this.gridItemMargin + child.offsetTop);
+            containerHeight = Math.max(containerHeight, topPosition + child.offsetHeight);
+        }
+        this.containerEl.style.height = containerHeight + 'px';
+    }
+
 };
 
 MiloGridProto._destroyGrid = function() {
